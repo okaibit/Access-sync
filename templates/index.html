@@ -125,6 +125,885 @@
       }
     }
   </style>
+
+<style>
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(15, 23, 42, 0.45);
+    color: #cbd5e1;
+    font-size: 0.72rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .theme-toggle:hover {
+    transform: translateY(-1px);
+  }
+
+  /* LIGHT THEME */
+  html.light {
+    color-scheme: light;
+  }
+
+  html.light body {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+  }
+
+  html.light .grid-bg {
+    background:
+      radial-gradient(circle at 15% 10%, rgba(99, 102, 241, 0.08), transparent 28%),
+      radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.06), transparent 25%),
+      #f1f5f9 !important;
+  }
+
+  html.light .glass {
+    background: rgba(255, 255, 255, 0.88) !important;
+    border-color: rgba(148, 163, 184, 0.22) !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06) !important;
+  }
+
+  html.light .theme-toggle {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #334155;
+  }
+
+  html.light .text-slate-100,
+  html.light .text-slate-200 {
+    color: #0f172a !important;
+  }
+
+  html.light .text-slate-300 {
+    color: #334155 !important;
+  }
+
+  html.light .text-slate-400 {
+    color: #475569 !important;
+  }
+
+  html.light .text-slate-500 {
+    color: #64748b !important;
+  }
+
+  html.light .text-slate-600 {
+    color: #475569 !important;
+  }
+
+  html.light .text-slate-700 {
+    color: #64748b !important;
+  }
+
+  html.light .border-white\/5 {
+    border-color: #e2e8f0 !important;
+  }
+
+  html.light .bg-black\/10 {
+    background: rgba(15, 23, 42, 0.035) !important;
+  }
+
+  html.light input,
+  html.light select,
+  html.light textarea {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  html.light input::placeholder {
+    color: #94a3b8 !important;
+  }
+
+  html.light pre {
+    background: #f8fafc !important;
+    color: #475569 !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  html.light .text-indigo-300 {
+    color: #4f46e5 !important;
+  }
+
+  html.light .text-indigo-200 {
+    color: #6366f1 !important;
+  }
+
+  html.light .text-emerald-300 {
+    color: #059669 !important;
+  }
+
+  html.light .text-emerald-200 {
+    color: #047857 !important;
+  }
+
+  html.light .text-amber-300 {
+    color: #d97706 !important;
+  }
+
+  html.light .bg-emerald-500\/5 {
+    background: rgba(16, 185, 129, 0.06) !important;
+  }
+
+  html.light .bg-indigo-500\/10 {
+    background: rgba(99, 102, 241, 0.08) !important;
+  }
+
+  html.light .bg-emerald-500\/10 {
+    background: rgba(16, 185, 129, 0.08) !important;
+  }
+
+  html.light .bg-amber-500\/10 {
+    background: rgba(245, 158, 11, 0.08) !important;
+  }
+
+  html.light .border-emerald-400\/20,
+  html.light .border-emerald-400\/10 {
+    border-color: rgba(16, 185, 129, 0.22) !important;
+  }
+
+  html.light .border-indigo-400\/20,
+  html.light .border-indigo-400\/10 {
+    border-color: rgba(99, 102, 241, 0.22) !important;
+  }
+
+  html.light .border-amber-400\/20 {
+    border-color: rgba(245, 158, 11, 0.25) !important;
+  }
+</style>
+
+
+<style>
+/* Additional light-theme coverage */
+html.light .bg-black\/20,
+html.light .bg-black\/30,
+html.light .bg-black\/40,
+html.light .bg-black\/50 {
+  background: rgba(15, 23, 42, 0.035) !important;
+}
+
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-50 {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-800 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-900 {
+  color: #0f172a !important;
+}
+
+html.light .border-white\/10,
+html.light .border-white\/20 {
+  border-color: rgba(148, 163, 184, 0.25) !important;
+}
+
+html.light .shadow-glow {
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Tables / result areas */
+html.light table {
+  color: #0f172a !important;
+}
+
+html.light th {
+  color: #64748b !important;
+}
+
+html.light td {
+  color: #334155 !important;
+}
+
+/* Select dropdown */
+html.light select option {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Status / audit areas */
+html.light #status {
+  background: #ffffff !important;
+}
+
+html.light #log {
+  background: #f8fafc !important;
+  color: #475569 !important;
+}
+
+/* Code / monospace values */
+html.light .mono {
+  color: #334155;
+}
+
+/* Disabled live button */
+html.light button:disabled {
+  background: rgba(148, 163, 184, 0.12) !important;
+  color: #94a3b8 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Keep the primary action buttons visually strong */
+html.light .bg-indigo-500 {
+  color: #ffffff !important;
+}
+
+html.light .bg-emerald-500 {
+  color: #ffffff !important;
+}
+
+/* Activity indicators */
+html.light .text-slate-700 {
+  color: #64748b !important;
+}
+
+/* Better card contrast */
+html.light .glass {
+  backdrop-filter: blur(12px);
+}
+
+/* Theme toggle */
+html.light .theme-toggle {
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+</style>
+
+
+<style>
+/* =========================================================
+   LIGHT THEME — REMAINING DARK SURFACES
+   ========================================================= */
+
+html.light .bg-slate-950,
+html.light .bg-slate-900,
+html.light .bg-slate-800 {
+  background: #ffffff !important;
+}
+
+html.light .bg-slate-700 {
+  background: #f8fafc !important;
+}
+
+/* Main dashboard cards */
+html.light .glass,
+html.light section .glass,
+html.light header.glass {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Execution Control / Sync Destination cards */
+html.light .glass h2,
+html.light .glass h3 {
+  color: #0f172a !important;
+}
+
+/* Inner dark panels */
+html.light .glass .bg-black\/10,
+html.light .glass .bg-black\/20,
+html.light .glass .bg-black\/30 {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Configuration / target panels */
+html.light .border-white\/5,
+html.light .border-white\/10,
+html.light .border-white\/20 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Metric cards: Members / To Add / Skipped / Errors */
+html.light #mProcessed,
+html.light #mAdded,
+html.light #mSkipped,
+html.light #mFailed {
+  color: #0f172a !important;
+}
+
+/* Make their containing cards light */
+html.light #mProcessed,
+html.light #mAdded,
+html.light #mSkipped,
+html.light #mFailed {
+  background: transparent !important;
+}
+
+/* Purple DRY RUN badge */
+html.light #modeBadge {
+  background: rgba(245, 158, 11, 0.10) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+  color: #b45309 !important;
+}
+
+/* Indigo / purple status badges */
+html.light .bg-indigo-500\/10 {
+  background: rgba(99, 102, 241, 0.07) !important;
+}
+
+html.light .border-indigo-400\/20 {
+  border-color: rgba(99, 102, 241, 0.20) !important;
+}
+
+/* Connected / not connected badges */
+html.light #serverConnectionBadge {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+}
+
+/* Target values */
+html.light #targetServer,
+html.light #targetMessage,
+html.light #targetRole,
+html.light #serverPreview,
+html.light #messagePreview,
+html.light #rolePreview {
+  color: #334155 !important;
+}
+
+/* Labels */
+html.light .eyebrow {
+  color: #64748b !important;
+}
+
+/* Execution readiness area */
+html.light #readiness {
+  color: #059669 !important;
+}
+
+/* SAFE badge */
+html.light .bg-emerald-500\/10 {
+  background: rgba(16, 185, 129, 0.07) !important;
+}
+
+html.light .border-emerald-400\/20 {
+  border-color: rgba(16, 185, 129, 0.20) !important;
+}
+
+/* Metric labels */
+html.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+/* Prevent dark inherited text */
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+/* Raw audit trail */
+html.light #log {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+/* Activity list */
+html.light #activity,
+html.light #activityList {
+  color: #475569 !important;
+}
+</style>
+
+
+<style>
+/* ===== LIGHT THEME COMPLETION ===== */
+
+html.light .bg-black\/10,
+html.light .bg-black\/20,
+html.light .bg-black\/30 {
+  background: rgba(248, 250, 252, 0.85) !important;
+}
+
+html.light .border-white\/5,
+html.light .border-white\/10 {
+  border-color: rgba(148, 163, 184, 0.20) !important;
+}
+
+/* Main panels / cards */
+html.light .glass {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(148, 163, 184, 0.22) !important;
+}
+
+/* Execution control / section panels */
+html.light .glass h2,
+html.light .glass h3 {
+  color: #0f172a !important;
+}
+
+/* Dry-run button */
+html.light #dryBtn {
+  background: #4f46e5 !important;
+  color: #ffffff !important;
+}
+
+html.light #dryBtn:hover {
+  background: #4338ca !important;
+}
+
+/* Live execution button */
+html.light #liveBtn {
+  background: rgba(16, 185, 129, 0.08) !important;
+  color: #047857 !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+/* Target / sync destination cards */
+html.light .text-slate-200,
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-600 {
+  color: #94a3b8 !important;
+}
+
+html.light .text-slate-700 {
+  color: #475569 !important;
+}
+
+/* Member statistics cards */
+html.light #members,
+html.light #toAdd,
+html.light #skipped,
+html.light #errors {
+  color: #0f172a !important;
+}
+
+/* Result / member rows */
+html.light .mono {
+  color: #334155;
+}
+
+/* Inputs */
+html.light input,
+html.light select,
+html.light textarea {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light input::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+/* Operational log / raw audit trail */
+html.light #log,
+html.light pre {
+  background: rgba(248, 250, 252, 0.95) !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Green execution area */
+html.light .bg-emerald-500\/5,
+html.light .bg-emerald-500\/10 {
+  background: rgba(16, 185, 129, 0.06) !important;
+}
+
+/* Purple / indigo status areas */
+html.light .bg-indigo-500\/10 {
+  background: rgba(99, 102, 241, 0.08) !important;
+}
+
+/* Amber status */
+html.light .bg-amber-500\/10 {
+  background: rgba(245, 158, 11, 0.08) !important;
+}
+
+/* Tables */
+html.light table {
+  color: #334155 !important;
+}
+
+html.light th {
+  color: #64748b !important;
+}
+
+html.light td {
+  color: #334155 !important;
+}
+
+/* Make dividers visible on white */
+html.light hr {
+  border-color: #e2e8f0 !important;
+}
+</style>
+
+
+<style>
+/* =========================================================
+   LIGHT THEME — WHITE CONTENT CARDS
+   ========================================================= */
+
+/* 1. Preview synchronization / table header + preview rows */
+html.light .preview-card,
+html.light .preview-row,
+html.light .preview-container {
+  background: #ffffff !important;
+  color: #1a202c !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Catch the existing dark preview container */
+html.light .glass .bg-black\/10 {
+  background: #ffffff !important;
+  color: #1a202c !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 2. Target Status Box — Sync destination */
+html.light #targetStatus,
+html.light .target-status,
+html.light .status-card {
+  background: #ffffff !important;
+  color: #1a202c !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Catch the status rows inside Sync Destination */
+html.light #targetStatus .bg-black\/10,
+html.light .status-card .bg-black\/10 {
+  background: #ffffff !important;
+  color: #1a202c !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 3. Metrics / Stat Cards */
+html.light .stat-card,
+html.light .metric-card,
+html.light .metrics-card {
+  background: #ffffff !important;
+  color: #1a202c !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Generic metric containers using the existing dark background */
+html.light .bg-black\/20 {
+  background: #ffffff !important;
+  color: #1a202c !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Metric numbers */
+html.light .stat-card .text-slate-100,
+html.light .metric-card .text-slate-100,
+html.light .metrics-card .text-slate-100 {
+  color: #0f172a !important;
+}
+
+/* Metric labels */
+html.light .stat-card .text-slate-400,
+html.light .metric-card .text-slate-400,
+html.light .metrics-card .text-slate-400 {
+  color: #475569 !important;
+}
+
+/* Make text inside white cards readable */
+html.light .preview-card .text-slate-300,
+html.light .preview-row .text-slate-300,
+html.light .target-status .text-slate-300,
+html.light .stat-card .text-slate-300 {
+  color: #334155 !important;
+}
+
+/* White card separators */
+html.light .preview-card + *,
+html.light .stat-card + * {
+  border-color: #e2e8f0 !important;
+}
+</style>
+
+
+<style>
+/* =========================================================
+   LIGHT THEME — FORCE ALL DASHBOARD CONTAINERS LIGHT
+   ========================================================= */
+
+/* Preview / configuration panels */
+html.light .panel,
+html.light .metric {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Target status / sync destination container */
+html.light .target-row {
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* The inner preview block */
+html.light #compactConfig,
+html.light #configFields {
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* Execution Control inner target block */
+html.light .glass .rounded-2xl {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+}
+
+/* Metrics — actual cards */
+html.light .metric {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .metric .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.light .metric .text-slate-600 {
+  color: #64748b !important;
+}
+
+html.light #mProcessed {
+  color: #0f172a !important;
+}
+
+html.light #mAdded {
+  color: #059669 !important;
+}
+
+html.light #mSkipped {
+  color: #d97706 !important;
+}
+
+html.light #mFailed {
+  color: #e11d48 !important;
+}
+
+/* Sync destination rows */
+html.light .target-row .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.light .target-row .text-slate-600 {
+  color: #64748b !important;
+}
+
+html.light .target-row .text-slate-300,
+html.light .target-row .mono {
+  color: #334155 !important;
+}
+
+/* Server connection state */
+html.light #serverConnectionBadge {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Execution control target container */
+html.light .glass .bg-black\/10,
+html.light .glass .bg-black\/20,
+html.light .glass .bg-black\/30 {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Preview table / member results */
+html.light table,
+html.light thead,
+html.light tbody,
+html.light tr {
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+html.light th {
+  color: #64748b !important;
+  background: #f8fafc !important;
+}
+
+html.light td {
+  color: #334155 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Member result rows */
+html.light #memberResults,
+html.light #results,
+html.light .member-row {
+  background: #ffffff !important;
+  color: #334155 !important;
+}
+
+/* Status / readiness panel */
+html.light #readiness,
+html.light #readiness + *,
+html.light .readiness {
+  background-color: #ffffff !important;
+}
+
+/* Keep green/amber/rose status text readable */
+html.light .text-emerald-300 {
+  color: #059669 !important;
+}
+
+html.light .text-amber-300 {
+  color: #d97706 !important;
+}
+
+html.light .text-rose-300 {
+  color: #e11d48 !important;
+}
+
+/* Remove dark-looking white-opacity surfaces */
+html.light [class*="bg-white\\/"] {
+  background-color: #ffffff !important;
+}
+
+/* Any remaining black background utility inside dashboard */
+html.light [class*="bg-black"] {
+  background-color: #ffffff !important;
+}
+
+/* Borders */
+html.light [class*="border-white"] {
+  border-color: #e2e8f0 !important;
+}
+</style>
+
+
+<style id="light-theme-final-fix">
+/* =========================================================
+   FINAL LIGHT THEME SURFACE OVERRIDES
+   ========================================================= */
+
+html.light .metric,
+html.light div.metric,
+html.light .panel,
+html.light div.panel {
+  background: #ffffff !important;
+  background-image: none !important;
+  background-color: #ffffff !important;
+  color: #1a202c !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Target rows */
+html.light .target-row {
+  background: #ffffff !important;
+  background-image: none !important;
+  color: #1a202c !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Preview/configuration surfaces */
+html.light #compactConfig,
+html.light #configFields,
+html.light #compactConfig .target-row,
+html.light #configFields .target-row {
+  background: #ffffff !important;
+  background-image: none !important;
+}
+
+/* Metrics text */
+html.light .metric .eyebrow {
+  color: #64748b !important;
+}
+
+html.light .metric .text-slate-600 {
+  color: #64748b !important;
+}
+
+html.light #mProcessed {
+  color: #0f172a !important;
+}
+
+html.light #mAdded {
+  color: #059669 !important;
+}
+
+html.light #mSkipped {
+  color: #d97706 !important;
+}
+
+html.light #mFailed {
+  color: #e11d48 !important;
+}
+
+/* Sync destination values */
+html.light #targetServer,
+html.light #targetMessage,
+html.light #targetRole,
+html.light #serverPreview,
+html.light #messagePreview,
+html.light #rolePreview {
+  color: #334155 !important;
+}
+
+/* Any dark utility backgrounds inside the light dashboard */
+html.light .metric [class*="bg-black"],
+html.light .panel [class*="bg-black"],
+html.light .metric [class*="bg-slate"],
+html.light .panel [class*="bg-slate"] {
+  background: #ffffff !important;
+  background-image: none !important;
+}
+
+/* Preview / member result rows */
+html.light #memberResults,
+html.light #results,
+html.light table,
+html.light tbody,
+html.light tr {
+  background: #ffffff !important;
+  color: #334155 !important;
+}
+
+/* Table header */
+html.light thead,
+html.light th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+}
+
+/* Table cells */
+html.light td {
+  background: #ffffff !important;
+  color: #334155 !important;
+  border-color: #e2e8f0 !important;
+}
+</style>
+
 </head>
 
 <body class="min-h-screen text-slate-100 grid-bg">
@@ -171,6 +1050,17 @@
           <span id="modeBadge" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300">
             DRY RUN MODE
           </span>
+
+          <button
+            id="themeToggle"
+            type="button"
+            class="theme-toggle"
+            aria-label="Toggle light and dark theme"
+            title="Toggle theme"
+          >
+            <span id="themeIcon">☀️</span>
+            <span id="themeLabel">Light</span>
+          </button>
         </div>
       </div>
     </header>
@@ -887,6 +1777,42 @@ $("liveBtn").addEventListener("click", () => {
   syncTarget();
   resolveServer();
 })(); 
+</script>
+
+
+<script>
+(function () {
+  const root = document.documentElement;
+  const button = document.getElementById("themeToggle");
+  const icon = document.getElementById("themeIcon");
+  const label = document.getElementById("themeLabel");
+
+  function applyTheme(theme) {
+    const light = theme === "light";
+
+    root.classList.toggle("light", light);
+
+    if (icon) icon.textContent = light ? "🌙" : "☀️";
+    if (label) label.textContent = light ? "Dark" : "Light";
+
+    localStorage.setItem("whitelist-sync-theme", theme);
+  }
+
+  const saved = localStorage.getItem("whitelist-sync-theme");
+
+  if (saved === "light") {
+    applyTheme("light");
+  } else {
+    applyTheme("dark");
+  }
+
+  if (button) {
+    button.addEventListener("click", function () {
+      const isLight = root.classList.contains("light");
+      applyTheme(isLight ? "dark" : "light");
+    });
+  }
+})();
 </script>
 
 </body>
