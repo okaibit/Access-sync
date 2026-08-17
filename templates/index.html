@@ -1520,8 +1520,22 @@ async function execute(dryRun) {
     }
 
     if (dryRun) {
+      // A new dry run always returns the UI to preview/safe mode.
+      // Live mode should only appear after an actual live execution.
       dryRunPassed = true;
       $("liveBtn").disabled = false;
+
+      const modeBadge = $("modeBadge");
+      if (modeBadge) {
+        modeBadge.textContent = "DRY RUN MODE";
+        modeBadge.className =
+          "text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300";
+      }
+
+      const executionActivity = $("executionActivity");
+      if (executionActivity) {
+        executionActivity.textContent = "Waiting for execution";
+      }
 
       $("resultBadge").textContent = "DRY RUN PASSED";
       $("resultBadge").className =
