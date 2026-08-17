@@ -46,7 +46,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-LOG_FILE = "whitelist_sync.log"
+if os.getenv("VERCEL"):
+    LOG_FILE = "/tmp/whitelist_sync.log"
+else:
+    LOG_FILE = "whitelist_sync.log"
 
 logging.basicConfig(
     level=logging.INFO,
