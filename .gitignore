@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+reports/*.csv
+whitelist_sync.log
+clients/*.json
+!clients/*.example.json
