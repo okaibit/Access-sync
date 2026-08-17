@@ -22,7 +22,11 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 app = Flask(__name__)
 
 SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "whitelist_sync.py")
-REPORTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
+REPORTS_DIR = (
+    "/tmp/reports"
+    if os.getenv("VERCEL")
+    else os.path.join(os.path.dirname(os.path.abspath(__file__)), "reports")
+)
 
 LOG_LINE_RE = re.compile(r"^(?P<ts>[\d-]+ [\d:,]+)\s+\[(?P<level>\w+)\]\s+(?P<msg>.*)$")
 
