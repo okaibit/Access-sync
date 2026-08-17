@@ -426,7 +426,10 @@ async def sync_role(client: discord.Client, settings: dict):
 def main():
     args = parse_args()
     settings = resolve_settings(args)
-    settings.setdefault("output_dir", args.output_dir)
+    if os.getenv("VERCEL") and (not args.output_dir or args.output_dir == "reports"):
+        settings["output_dir"] = "/tmp/reports"
+    else:
+        settings.setdefault("output_dir", args.output_dir)
 
     token = os.getenv("DISCORD_BOT_TOKEN")
     if not token:
