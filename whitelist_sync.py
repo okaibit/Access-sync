@@ -348,7 +348,8 @@ async def sync_role(client: discord.Client, settings: dict):
 
     action = settings["action"]
     dry_run = settings["dry_run"]
-    output_dir = settings.get("output_dir", "reports")
+    default_output_dir = "/tmp/reports" if os.getenv("VERCEL") else "reports"
+    output_dir = settings.get("output_dir") or default_output_dir
     concurrency = max(1, settings.get("concurrency", 5))
 
     if dry_run:
