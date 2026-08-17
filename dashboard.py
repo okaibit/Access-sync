@@ -158,6 +158,11 @@ def run():
     channel_id = str(data.get("channel_id", "")).strip()
     protected_roles = str(data.get("protected_roles", "")).strip()
 
+    # Default protected roles for this controlled Discord deployment.
+    # These roles are never modified by Whitelist Sync.
+    if not protected_roles:
+        protected_roles = "1538991673596453065,1538992037238415440"
+
     if not (server_id and message_id and role_id):
         return jsonify({"ok": False, "error": "Server ID, Message ID, and Role ID are all required."}), 400
 
