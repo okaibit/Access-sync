@@ -187,7 +187,16 @@ def run():
             report_rows = list(reader)
 
     success = result.returncode == 0
-    full_log = (result.stdout or "") + (result.stderr or "")
+    stdout = result.stdout or ""
+    stderr = result.stderr or ""
+
+    full_log = stdout
+    if stderr:
+        full_log += "\n\n--- ERROR OUTPUT ---\n" + stderr
+
+    if not success:
+        full_log += f"\n\n--- PROCESS EXIT CODE: {result.returncode} ---"
+
     events, permissions = parse_log(full_log)
 
     return jsonify({
