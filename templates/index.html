@@ -168,7 +168,7 @@
             <span id="connectionServerName">Resolving server…</span>
           </span>
 
-          <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300">
+          <span id="modeBadge" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300">
             DRY RUN MODE
           </span>
         </div>
@@ -517,7 +517,7 @@
             <span class="activity-dot"></span>
             <div>
               <div class="text-xs text-slate-500">Found whitelist members</div>
-              <div class="text-[10px] text-slate-700 mt-1">Waiting for execution</div>
+              <div id="executionActivity" class="text-[10px] text-slate-700 mt-1">Waiting for execution</div>
             </div>
           </div>
 
@@ -658,6 +658,19 @@ async function execute(dryRun) {
     } else {
       $("resultBadge").textContent = "LIVE EXECUTION COMPLETE";
       $("resultBadge").className = "text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-400/20";
+
+      const modeBadge = $("modeBadge");
+      if (modeBadge) {
+        modeBadge.textContent = "LIVE EXECUTION MODE";
+        modeBadge.className =
+          "text-xs font-semibold px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-400/20 text-emerald-300";
+      }
+
+      const executionActivity = $("executionActivity");
+      if (executionActivity) {
+        executionActivity.textContent = "Live execution completed";
+      }
+
       setStatus("Live execution completed successfully. Verify the role changes in Discord.", "success");
     }
   } catch (err) {
