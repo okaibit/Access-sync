@@ -10,16 +10,60 @@ import csv
 import glob
 import os
 import re
+import secrets
 import subprocess
 import sys
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, Response
 from dotenv import load_dotenv
 import discord
 
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 app = Flask(__name__)
+
+# ---------------------------------------------------------------------------
+# Basic auth gate
+#
+# This dashboard can trigger live role changes on a real Discord server, so
+# it must never sit open on a public URL. Set DASHBOARD_USERNAME and
+# DASHBOARD_PASSWORD as env vars (same place as DISCORD_BOT_TOKEN) to lock
+# it down. If either is unset, the whole app refuses to start in production
+# (VERCEL/RENDER) so it can't accidentally go live unprotected; locally it
+# just logs a warning so you can still develop without setting them.
+# ---------------------------------------------------------------------------
+DASHBOARD_USERNAME = os.getenv("DASHBOARD_USERNAME")
+DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD")
+_IS_HOSTED = bool(os.getenv("RENDER") or os.getenv("VERCEL"))
+
+if _IS_HOSTED and not (DASHBOARD_USERNAME and DASHBOARD_PASSWORD):
+    sys.exit(
+        "DASHBOARD_USERNAME and DASHBOARD_PASSWORD must both be set before "
+        "this app can run on a public host. Add them as environment "
+        "variables in your Render dashboard, then redeploy."
+    )
+elif not (DASHBOARD_USERNAME and DASHBOARD_PASSWORD):
+    print(
+        "WARNING: DASHBOARD_USERNAME/DASHBOARD_PASSWORD not set. "
+        "Running with no login -- fine for local dev, never deploy this way."
+    )
+
+
+def check_auth(username, password):
+    if not (DASHBOARD_USERNAME and DASHBOARD_PASSWORD):
+        return True  # local dev only, see warning above
+    return secrets.compare_digest(username or "", DASHBOARD_USERNAME) and \
+        secrets.compare_digest(password or "", DASHBOARD_PASSWORD)
+
+
+@app.before_request
+def _global_auth_gate():
+    auth = request.authorization
+    if not auth or not check_auth(auth.username, auth.password):
+        return Response(
+            "Login required.", 401,
+            {"WWW-Authenticate": 'Basic realm="Whitelist Sync"'},
+        )
 
 # Ensure the reports directory exists whether we're started via
 # `python3 dashboard.py` (local dev) or via gunicorn (production on Render,
@@ -166,10 +210,17 @@ def run():
     channel_id = str(data.get("channel_id", "")).strip()
     protected_roles = str(data.get("protected_roles", "")).strip()
 
-    # Default protected roles for this controlled Discord deployment.
-    # These roles are never modified by Whitelist Sync.
+    # No hardcoded default here anymore -- a prior version defaulted to two
+    # specific role IDs from one server, which silently did nothing on any
+    # other client's server instead of protecting their actual admin/mod
+    # roles. Each client must enter their own protected role IDs explicitly.
+    protected_roles_warning = None
     if not protected_roles:
-        protected_roles = "1538991673596453065,1538992037238415440"
+        protected_roles_warning = (
+            "No protected roles were entered. Admin/mod roles on this "
+            "server will NOT be automatically protected from this sync -- "
+            "double check the results before running live."
+        )
 
     if not (server_id and message_id and role_id):
         return jsonify({"ok": False, "error": "Server ID, Message ID, and Role ID are all required."}), 400
@@ -225,6 +276,7 @@ def run():
         "permissions": permissions,
         "rows": report_rows,
         "report_file": os.path.basename(report_filename) if report_filename else None,
+        "protected_roles_warning": protected_roles_warning,
     })
 
 

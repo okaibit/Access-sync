@@ -45,6 +45,17 @@ Paste the bot token into .env:
 
 DISCORD_BOT_TOKEN=your_actual_token_here
 
+If you're running the web dashboard (dashboard.py) anywhere other than your
+own machine (e.g. deployed on Render), also set:
+
+DASHBOARD_USERNAME=your_choice
+DASHBOARD_PASSWORD=your_choice
+
+This locks the dashboard behind a login prompt. Without these set, the
+dashboard refuses to start on a hosted platform (Render/Vercel) -- this is
+intentional, since the dashboard can trigger live role changes and must
+never sit open on a public URL with no login.
+
 ### 4. Get the IDs you need
 
 Enable Developer Mode (User Settings -> Advanced -> Developer Mode), then

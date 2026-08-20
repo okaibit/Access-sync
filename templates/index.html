@@ -1577,6 +1577,10 @@ async function execute(dryRun) {
           : "Dry run finished with problems — check the audit trail before going live.",
         allOk ? "success" : "error"
       );
+
+      if (allOk && data.protected_roles_warning) {
+        setStatus(data.protected_roles_warning, "error");
+      }
     } else {
       $("resultBadge").textContent = "LIVE EXECUTION COMPLETE";
       $("resultBadge").className = "text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-400/20";
