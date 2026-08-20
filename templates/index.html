@@ -1171,10 +1171,10 @@ html.light td {
               </label>
 
               <label class="block">
-                <span class="text-[10px] uppercase tracking-wider text-slate-500">Protected Roles <span class="text-emerald-600">(enforced)</span></span>
-                <input id="protected_roles" class="mt-1.5 w-full rounded-xl px-3 py-2.5 text-sm mono" placeholder="Admin + moderator are protected by default">
+                <span class="text-[10px] uppercase tracking-wider text-slate-500">Protected Roles <span class="text-amber-500">(required — not automatic)</span></span>
+                <input id="protected_roles" class="mt-1.5 w-full rounded-xl px-3 py-2.5 text-sm mono" placeholder="e.g. 123456789012345678,987654321098765432">
                 <p class="mt-1.5 text-[10px] leading-relaxed text-slate-500">
-                  Admin and moderator roles are automatically protected from modification.
+                  Enter the role IDs (not names) to protect, comma-separated. Nothing is protected automatically — leave this blank and admin/mod roles can still be modified. To find a role ID: enable Developer Mode in Discord (Settings → Advanced), then right-click the role in Server Settings → Roles → Copy Role ID.
                 </p>
               </label>
             </form>
