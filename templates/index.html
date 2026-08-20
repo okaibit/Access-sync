@@ -1029,6 +1029,7 @@ html.light td {
             </div>
             <p class="text-xs sm:text-sm text-slate-400 mt-1">
               Discord Access Infrastructure
+              {% if client_label %}<span class="text-slate-600">·</span> {{ client_label }}{% endif %}
             </p>
           </div>
         </div>
@@ -1143,8 +1144,23 @@ html.light td {
             <form id="syncForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
               <label class="block">
-                <span class="text-[10px] uppercase tracking-wider text-slate-500">Discord Server ID</span>
-                <input id="server_id" class="mt-1.5 w-full rounded-xl px-3 py-2.5 text-sm mono" value="1538311999316824156">
+                <span class="text-[10px] uppercase tracking-wider text-slate-500">
+                  Discord Server ID
+                  {% if allowed_server_ids and "*" not in allowed_server_ids and allowed_server_ids|length == 1 %}
+                  <span class="text-emerald-600">(locked to your server)</span>
+                  {% elif allowed_server_ids and "*" not in allowed_server_ids and allowed_server_ids|length > 1 %}
+                  <span class="text-emerald-600">(choose from your servers)</span>
+                  {% endif %}
+                </span>
+                {% if allowed_server_ids and "*" not in allowed_server_ids and allowed_server_ids|length == 1 %}
+                <input id="server_id" class="mt-1.5 w-full rounded-xl px-3 py-2.5 text-sm mono opacity-70 cursor-not-allowed" value="{{ allowed_server_ids[0] }}" readonly>
+                {% elif allowed_server_ids and "*" not in allowed_server_ids and allowed_server_ids|length > 1 %}
+                <select id="server_id" class="mt-1.5 w-full rounded-xl px-3 py-2.5 text-sm mono">
+                  <option value="">Loading your servers…</option>
+                </select>
+                {% else %}
+                <input id="server_id" class="mt-1.5 w-full rounded-xl px-3 py-2.5 text-sm mono" placeholder="Enter your Discord Server ID">
+                {% endif %}
               </label>
 
               <label class="block">
@@ -1837,7 +1853,31 @@ $("liveBtn").addEventListener("click", () => {
 
   markOperationalChecksReady();
   syncTarget();
-  resolveServer();
+
+  // If the Server ID field is a <select> (accounts scoped to more than one
+  // server), populate it with real server names before running the first
+  // resolveServer() call -- otherwise fall through to the normal single
+  // input/locked-field behavior.
+  const serverField = $("server_id");
+  if (serverField && serverField.tagName === "SELECT") {
+    fetch("/my-servers")
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok && data.servers && data.servers.length) {
+          serverField.innerHTML = data.servers
+            .map(s => `<option value="${s.server_id}">${s.server_name}</option>`)
+            .join("");
+        } else {
+          serverField.innerHTML = `<option value="">No servers available</option>`;
+        }
+        resolveServer();
+      })
+      .catch(() => {
+        serverField.innerHTML = `<option value="">Couldn't load your servers</option>`;
+      });
+  } else {
+    resolveServer();
+  }
 })(); 
 </script>
 

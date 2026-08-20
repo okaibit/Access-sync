@@ -8,6 +8,7 @@ Then open http://127.0.0.1:5051 in your browser.
 
 import csv
 import glob
+import json
 import os
 import re
 import secrets
@@ -25,33 +26,80 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 app = Flask(__name__)
 
 # ---------------------------------------------------------------------------
-# Session-based login
+# Multi-tenant login
 #
 # This dashboard can trigger live role changes on a real Discord server, so
-# it must never sit open on a public URL. Set DASHBOARD_USERNAME and
-# DASHBOARD_PASSWORD as env vars (same place as DISCORD_BOT_TOKEN) to lock
-# it down. If either is unset, the whole app refuses to start in production
-# (VERCEL/RENDER) so it can't accidentally go live unprotected; locally it
-# just logs a warning so you can still develop without setting them.
+# every account is locked to only the server(s) it's allowed to touch --
+# even if a client knows another client's server ID, the backend refuses to
+# run a sync against it.
+#
+# Configure accounts with the DASHBOARD_CLIENTS env var as a JSON array:
+#
+#   [
+#     {"username": "okai", "password": "...", "label": "Okai (admin)", "allowed_server_ids": ["*"]},
+#     {"username": "acme", "password": "...", "label": "Acme Community", "allowed_server_ids": ["1538...24156"]}
+#   ]
+#
+# "allowed_server_ids": ["*"] means unrestricted (use only for your own
+# account). Everyone else should list the exact server ID(s) they're allowed
+# to sync -- copy this from Discord (right-click the server icon -> Copy
+# Server ID, with Developer Mode on).
+#
+# For backward compatibility, if DASHBOARD_CLIENTS isn't set, the older
+# single-account DASHBOARD_USERNAME / DASHBOARD_PASSWORD pair still works as
+# one unrestricted admin account.
 #
 # DASHBOARD_SECRET_KEY signs the session cookie. Set it as an env var too so
 # logins survive a redeploy; if left unset, a random key is generated at
 # startup, which just means everyone gets logged out on the next restart --
 # safe, just slightly less convenient.
 # ---------------------------------------------------------------------------
-DASHBOARD_USERNAME = os.getenv("DASHBOARD_USERNAME")
-DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD")
 _IS_HOSTED = bool(os.getenv("RENDER") or os.getenv("VERCEL"))
 
-if _IS_HOSTED and not (DASHBOARD_USERNAME and DASHBOARD_PASSWORD):
+
+def _load_clients():
+    raw = os.getenv("DASHBOARD_CLIENTS")
+    if raw:
+        try:
+            clients = json.loads(raw)
+        except json.JSONDecodeError as e:
+            sys.exit(f"DASHBOARD_CLIENTS is not valid JSON: {e}")
+        by_username = {}
+        for c in clients:
+            if not c.get("username") or not c.get("password"):
+                sys.exit("Every entry in DASHBOARD_CLIENTS needs a username and password.")
+            by_username[c["username"]] = {
+                "password": c["password"],
+                "label": c.get("label", c["username"]),
+                "allowed_server_ids": set(str(s) for s in c.get("allowed_server_ids", [])),
+            }
+        return by_username
+
+    # Backward compatible single-account fallback.
+    legacy_user = os.getenv("DASHBOARD_USERNAME")
+    legacy_pass = os.getenv("DASHBOARD_PASSWORD")
+    if legacy_user and legacy_pass:
+        return {
+            legacy_user: {
+                "password": legacy_pass,
+                "label": legacy_user,
+                "allowed_server_ids": {"*"},
+            }
+        }
+    return {}
+
+
+CLIENTS = _load_clients()
+
+if _IS_HOSTED and not CLIENTS:
     sys.exit(
-        "DASHBOARD_USERNAME and DASHBOARD_PASSWORD must both be set before "
-        "this app can run on a public host. Add them as environment "
-        "variables in your Render dashboard, then redeploy."
+        "No login configured. Set DASHBOARD_CLIENTS (preferred, supports "
+        "multiple clients) or DASHBOARD_USERNAME/DASHBOARD_PASSWORD as "
+        "environment variables in your Render dashboard, then redeploy."
     )
-elif not (DASHBOARD_USERNAME and DASHBOARD_PASSWORD):
+elif not CLIENTS:
     print(
-        "WARNING: DASHBOARD_USERNAME/DASHBOARD_PASSWORD not set. "
+        "WARNING: No DASHBOARD_CLIENTS or DASHBOARD_USERNAME/PASSWORD set. "
         "Running with no login -- fine for local dev, never deploy this way."
     )
 
@@ -65,24 +113,46 @@ app.config.update(
 
 
 def check_auth(username, password):
-    if not (DASHBOARD_USERNAME and DASHBOARD_PASSWORD):
-        return True  # local dev only, see warning above
-    return secrets.compare_digest(username or "", DASHBOARD_USERNAME) and \
-        secrets.compare_digest(password or "", DASHBOARD_PASSWORD)
+    if not CLIENTS:
+        return None  # local dev only, see warning above
+    client = CLIENTS.get(username or "")
+    if client and secrets.compare_digest(password or "", client["password"]):
+        return client
+    return None
+
+
+def current_client():
+    """The logged-in tenant's config, or an unrestricted stand-in for local dev."""
+    if not CLIENTS:
+        return {"username": "local", "label": "Local dev", "allowed_server_ids": {"*"}}
+    return session.get("client")
+
+
+def server_allowed(server_id: str) -> bool:
+    client = current_client()
+    if not client:
+        return False
+    allowed = client.get("allowed_server_ids", set())
+    return "*" in allowed or str(server_id) in allowed
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login_page():
-    if not (DASHBOARD_USERNAME and DASHBOARD_PASSWORD):
+    if not CLIENTS:
         return redirect(url_for("index"))
 
     error = None
     if request.method == "POST":
         username = request.form.get("username", "")
         password = request.form.get("password", "")
-        if check_auth(username, password):
+        client = check_auth(username, password)
+        if client:
             session.clear()
-            session["authed"] = True
+            session["client"] = {
+                "username": username,
+                "label": client["label"],
+                "allowed_server_ids": list(client["allowed_server_ids"]),
+            }
             session.permanent = True
             return redirect(url_for("index"))
         error = "Incorrect username or password."
@@ -98,13 +168,13 @@ def logout():
 
 @app.before_request
 def _global_auth_gate():
-    if not (DASHBOARD_USERNAME and DASHBOARD_PASSWORD):
+    if not CLIENTS:
         return  # local dev, no login configured
 
     if request.path in ("/login", "/logout") or request.path.startswith("/static"):
         return
 
-    if session.get("authed"):
+    if session.get("client"):
         return
 
     if request.path == "/":
@@ -180,7 +250,12 @@ def parse_log(log_text: str):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    client = current_client()
+    return render_template(
+        "index.html",
+        client_label=client["label"] if client else None,
+        allowed_server_ids=list(client["allowed_server_ids"]) if client else [],
+    )
 
 
 @app.route("/server-info", methods=["POST"])
@@ -194,6 +269,12 @@ def server_info():
             "ok": False,
             "error": "Enter a valid Discord Server ID."
         }), 400
+
+    if not server_allowed(server_id):
+        return jsonify({
+            "ok": False,
+            "error": "This account isn't authorized for that server."
+        }), 403
 
     token = os.getenv("DISCORD_BOT_TOKEN")
     if not token:
@@ -246,6 +327,55 @@ def server_info():
     })
 
 
+@app.route("/my-servers")
+def my_servers():
+    """
+    Resolve display names for every server this logged-in account is
+    scoped to. Used to power the server picker for accounts with more
+    than one allowed server -- so they choose from real server names
+    instead of pasting raw IDs.
+    """
+    client = current_client()
+    allowed = list(client.get("allowed_server_ids", set())) if client else []
+
+    if not allowed or "*" in allowed:
+        return jsonify({"ok": True, "servers": []})
+
+    token = os.getenv("DISCORD_BOT_TOKEN")
+    if not token:
+        return jsonify({"ok": False, "error": "DISCORD_BOT_TOKEN is not configured."}), 500
+
+    async def resolve_all():
+        intents = discord.Intents.none()
+        discord_client = discord.Client(intents=intents)
+        results = []
+        try:
+            await discord_client.login(token)
+            for sid in allowed:
+                guild = discord_client.get_guild(int(sid))
+                if guild is None:
+                    try:
+                        guild = await discord_client.fetch_guild(int(sid))
+                    except (discord.NotFound, discord.Forbidden):
+                        guild = None
+                results.append({
+                    "server_id": sid,
+                    "server_name": guild.name if guild else f"Unknown server ({sid})",
+                })
+        finally:
+            await discord_client.close()
+        return results
+
+    import asyncio
+
+    try:
+        servers = asyncio.run(resolve_all())
+    except Exception as exc:
+        return jsonify({"ok": False, "error": f"Discord lookup failed: {exc}"}), 502
+
+    return jsonify({"ok": True, "servers": servers})
+
+
 @app.route("/run", methods=["POST"])
 def run():
     data = request.get_json()
@@ -272,6 +402,12 @@ def run():
 
     if not (server_id and message_id and role_id):
         return jsonify({"ok": False, "error": "Server ID, Message ID, and Role ID are all required."}), 400
+
+    if not server_allowed(server_id):
+        return jsonify({
+            "ok": False,
+            "error": "This account isn't authorized to run syncs against that server."
+        }), 403
 
     cmd = [
         sys.executable, SCRIPT,
@@ -302,6 +438,19 @@ def run():
             reader = csv.DictReader(f)
             report_rows = list(reader)
 
+        # Tag the report with which server it belongs to, so /history can
+        # filter results per client and never show one client's activity to
+        # another. whitelist_sync.py doesn't know about tenants, so this is
+        # applied here, right after the run completes.
+        tagged_name = report_filename.replace(
+            "report_", f"report_srv{server_id}_", 1
+        )
+        try:
+            os.rename(report_filename, tagged_name)
+            report_filename = tagged_name
+        except OSError:
+            pass  # keep the untagged file rather than fail the whole run
+
     success = result.returncode == 0
     stdout = result.stdout or ""
     stderr = result.stderr or ""
@@ -330,14 +479,35 @@ def run():
 
 @app.route("/history")
 def history():
+    client = current_client()
+    allowed = client.get("allowed_server_ids", set()) if client else set()
+
     files = sorted(glob.glob(os.path.join(REPORTS_DIR, "*.csv")), reverse=True)
     runs = []
-    for f in files[:30]:
+    for f in files:
         name = os.path.basename(f)
-        m = re.match(r"report_(add|remove)_(\d{8})_(\d{6})\.csv", name)
-        if not m:
-            continue
-        action, date_str, time_str = m.groups()
+
+        # New format tags the server: report_srv<id>_add_20260101_120000.csv
+        m = re.match(r"report_srv(\d+)_(add|remove)_(\d{8})_(\d{6})\.csv", name)
+        if m:
+            file_server_id, action, date_str, time_str = m.groups()
+        else:
+            # Older reports saved before server-tagging existed have no
+            # recorded owner -- only the unrestricted admin account can see
+            # these, since we can't verify which client they belong to.
+            m = re.match(r"report_(add|remove)_(\d{8})_(\d{6})\.csv", name)
+            if not m:
+                continue
+            action, date_str, time_str = m.groups()
+            file_server_id = None
+
+        if "*" not in allowed:
+            if file_server_id is None or file_server_id not in allowed:
+                continue
+
+        if len(runs) >= 30:
+            break
+
         try:
             dt = datetime.strptime(date_str + time_str, "%Y%m%d%H%M%S")
         except ValueError:
