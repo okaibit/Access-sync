@@ -22,6 +22,7 @@
     }
 
     body {
+      overflow-x: hidden;
       background:
         radial-gradient(circle at 10% 0%, rgba(99,102,241,.16), transparent 30%),
         radial-gradient(circle at 90% 0%, rgba(139,92,246,.12), transparent 28%),
@@ -1313,7 +1314,7 @@ html.light td {
     <section class="grid grid-cols-1 lg:grid-cols-[1.45fr_.75fr] gap-5 mb-5">
 
       <!-- SYNC PREVIEW -->
-      <div class="glass rounded-3xl p-5 sm:p-7">
+      <div class="glass rounded-3xl p-5 sm:p-7 min-w-0">
 
         <div class="flex items-center justify-between gap-3 mb-5">
           <div>
@@ -1383,7 +1384,7 @@ html.light td {
 
 
       <!-- ACTIVITY -->
-      <div class="glass rounded-3xl p-5 sm:p-7">
+      <div class="glass rounded-3xl p-5 sm:p-7 min-w-0">
         <div class="eyebrow text-slate-500 mb-2">Activity</div>
         <h2 class="text-lg font-semibold">Operational log</h2>
         <p class="text-xs text-slate-500 mt-1 mb-4">Latest local execution events.</p>
@@ -1418,7 +1419,7 @@ html.light td {
 
         <div class="mt-5">
           <div class="eyebrow text-slate-500 mb-3">Raw Audit Trail</div>
-          <pre id="log" class="rounded-2xl bg-black/30 border border-white/5 p-4 text-[10px] leading-5 text-slate-500 overflow-auto min-h-40 max-h-72">Waiting for execution...</pre>
+          <pre id="log" class="rounded-2xl bg-black/30 border border-white/5 p-4 text-[10px] leading-5 text-slate-500 overflow-auto min-h-40 max-h-72 whitespace-pre-wrap break-words">Waiting for execution...</pre>
         </div>
       </div>
 
