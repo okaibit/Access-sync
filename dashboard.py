@@ -13,8 +13,10 @@ import re
 import secrets
 import subprocess
 import sys
-from datetime import datetime
-from flask import Flask, render_template, request, jsonify, Response
+from datetime import datetime, timedelta
+from flask import (
+    Flask, render_template, request, jsonify, redirect, url_for, session,
+)
 from dotenv import load_dotenv
 import discord
 
@@ -23,7 +25,7 @@ load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 app = Flask(__name__)
 
 # ---------------------------------------------------------------------------
-# Basic auth gate
+# Session-based login
 #
 # This dashboard can trigger live role changes on a real Discord server, so
 # it must never sit open on a public URL. Set DASHBOARD_USERNAME and
@@ -31,6 +33,11 @@ app = Flask(__name__)
 # it down. If either is unset, the whole app refuses to start in production
 # (VERCEL/RENDER) so it can't accidentally go live unprotected; locally it
 # just logs a warning so you can still develop without setting them.
+#
+# DASHBOARD_SECRET_KEY signs the session cookie. Set it as an env var too so
+# logins survive a redeploy; if left unset, a random key is generated at
+# startup, which just means everyone gets logged out on the next restart --
+# safe, just slightly less convenient.
 # ---------------------------------------------------------------------------
 DASHBOARD_USERNAME = os.getenv("DASHBOARD_USERNAME")
 DASHBOARD_PASSWORD = os.getenv("DASHBOARD_PASSWORD")
@@ -48,6 +55,14 @@ elif not (DASHBOARD_USERNAME and DASHBOARD_PASSWORD):
         "Running with no login -- fine for local dev, never deploy this way."
     )
 
+app.secret_key = os.getenv("DASHBOARD_SECRET_KEY") or secrets.token_hex(32)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=_IS_HOSTED,
+    PERMANENT_SESSION_LIFETIME=timedelta(days=7),
+)
+
 
 def check_auth(username, password):
     if not (DASHBOARD_USERNAME and DASHBOARD_PASSWORD):
@@ -56,14 +71,47 @@ def check_auth(username, password):
         secrets.compare_digest(password or "", DASHBOARD_PASSWORD)
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login_page():
+    if not (DASHBOARD_USERNAME and DASHBOARD_PASSWORD):
+        return redirect(url_for("index"))
+
+    error = None
+    if request.method == "POST":
+        username = request.form.get("username", "")
+        password = request.form.get("password", "")
+        if check_auth(username, password):
+            session.clear()
+            session["authed"] = True
+            session.permanent = True
+            return redirect(url_for("index"))
+        error = "Incorrect username or password."
+
+    return render_template("login.html", error=error)
+
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    return redirect(url_for("login_page"))
+
+
 @app.before_request
 def _global_auth_gate():
-    auth = request.authorization
-    if not auth or not check_auth(auth.username, auth.password):
-        return Response(
-            "Login required.", 401,
-            {"WWW-Authenticate": 'Basic realm="Whitelist Sync"'},
-        )
+    if not (DASHBOARD_USERNAME and DASHBOARD_PASSWORD):
+        return  # local dev, no login configured
+
+    if request.path in ("/login", "/logout") or request.path.startswith("/static"):
+        return
+
+    if session.get("authed"):
+        return
+
+    if request.path == "/":
+        return redirect(url_for("login_page"))
+
+    return jsonify({"ok": False, "error": "Session expired. Please log in again."}), 401
+
 
 # Ensure the reports directory exists whether we're started via
 # `python3 dashboard.py` (local dev) or via gunicorn (production on Render,

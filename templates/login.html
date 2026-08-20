@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Whitelist Sync — Access Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: dark; }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #05060c;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    .display {
+      font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* ---------------------------------------------------------------- */
+    /* Scene: ambient glow + perspective floor + floating access node   */
+    /* ---------------------------------------------------------------- */
+
+    .scene {
+      position: relative;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 18% 12%, rgba(99,102,241,.20), transparent 32%),
+        radial-gradient(circle at 84% 8%, rgba(139,92,246,.16), transparent 30%),
+        radial-gradient(circle at 50% 100%, rgba(56,189,248,.08), transparent 45%),
+        #05060c;
+      perspective: 1400px;
+      perspective-origin: 50% 40%;
+    }
+
+    .floor {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 220vw;
+      height: 70vh;
+      transform: translateX(-50%) rotateX(78deg);
+      transform-origin: bottom center;
+      background-image:
+        linear-gradient(rgba(129,140,248,.16) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(129,140,248,.16) 1px, transparent 1px);
+      background-size: 46px 46px;
+      -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,.85), transparent 78%);
+      mask-image: linear-gradient(to top, rgba(0,0,0,.85), transparent 78%);
+      opacity: .55;
+    }
+
+    .scanline {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 220vw;
+      height: 2px;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, transparent, rgba(99,241,197,.55), transparent);
+      filter: blur(.5px);
+      animation: sweep 5.5s ease-in-out infinite;
+      transform-origin: bottom center;
+    }
+
+    @keyframes sweep {
+      0%   { bottom: 2%;  opacity: 0; }
+      12%  { opacity: .9; }
+      50%  { bottom: 42%; opacity: .35; }
+      88%  { opacity: .9; }
+      100% { bottom: 68%; opacity: 0; }
+    }
+
+    /* Rotating hex access node, sits above the login card */
+    .node-wrap {
+      position: relative;
+      width: 108px;
+      height: 108px;
+      margin: 0 auto 6px;
+      transform-style: preserve-3d;
+    }
+
+    .node {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      animation: spin 14s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotateY(0deg) rotateX(18deg); }
+      to   { transform: rotateY(360deg) rotateX(18deg); }
+    }
+
+    .hex-face {
+      position: absolute;
+      inset: 0;
+      clip-path: polygon(50% 2%, 95% 26%, 95% 74%, 50% 98%, 5% 74%, 5% 26%);
+      background: linear-gradient(150deg, rgba(99,102,241,.55), rgba(56,189,248,.25));
+      border: 1px solid rgba(165,180,252,.55);
+      box-shadow: 0 0 30px rgba(99,102,241,.35), inset 0 0 18px rgba(165,180,252,.18);
+    }
+
+    .hex-face.back {
+      transform: rotateY(180deg) translateZ(1px);
+      background: linear-gradient(150deg, rgba(56,189,248,.25), rgba(99,102,241,.5));
+    }
+
+    .node-core {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateZ(2px);
+      pointer-events: none;
+    }
+
+    .node-core span {
+      font-size: 22px;
+    }
+
+    .orbit-dot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #a5b4fc;
+      box-shadow: 0 0 8px rgba(165,180,252,.8);
+      transform-style: preserve-3d;
+    }
+
+    .orbit-1 { animation: orbit1 6s linear infinite; }
+    .orbit-2 { animation: orbit2 8s linear infinite reverse; }
+    .orbit-3 { animation: orbit3 10s linear infinite; }
+
+    @keyframes orbit1 {
+      from { transform: rotateZ(0deg) translateX(72px) rotateZ(0deg); }
+      to   { transform: rotateZ(360deg) translateX(72px) rotateZ(-360deg); }
+    }
+    @keyframes orbit2 {
+      from { transform: rotateZ(0deg) translateX(84px) rotateZ(0deg); }
+      to   { transform: rotateZ(360deg) translateX(84px) rotateZ(-360deg); }
+    }
+    @keyframes orbit3 {
+      from { transform: rotateX(60deg) rotateZ(0deg) translateX(64px); }
+      to   { transform: rotateX(60deg) rotateZ(360deg) translateX(64px); }
+    }
+
+    /* Login card — tilts gently to follow the cursor */
+    .stage {
+      transform-style: preserve-3d;
+      transition: transform .25s ease-out;
+    }
+
+    .card {
+      background: rgba(10,13,26,.82);
+      border: 1px solid rgba(148,163,184,.14);
+      backdrop-filter: blur(22px);
+      box-shadow:
+        0 30px 80px rgba(0,0,0,.55),
+        0 0 0 1px rgba(255,255,255,.02) inset,
+        0 0 70px rgba(99,102,241,.10);
+    }
+
+    input {
+      background: rgba(2,6,23,.75) !important;
+      border: 1px solid rgba(148,163,184,.16) !important;
+      color: #e5e7eb !important;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: rgba(129,140,248,.65) !important;
+      box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+    }
+
+    .eyebrow {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .unlock-btn {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      transition: filter .15s ease, transform .15s ease;
+    }
+    .unlock-btn:hover { filter: brightness(1.08); }
+    .unlock-btn:active { transform: scale(.985); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .node, .orbit-1, .orbit-2, .orbit-3, .scanline { animation: none !important; }
+      .stage { transition: none !important; }
+    }
+
+    @media (max-width: 480px) {
+      .floor, .scanline { opacity: .3; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scene" id="scene">
+    <div class="floor"></div>
+    <div class="scanline"></div>
+
+    <div class="stage" id="stage">
+      <div class="node-wrap">
+        <div class="node">
+          <div class="hex-face"></div>
+          <div class="hex-face back"></div>
+        </div>
+        <div class="node-core"><span>🔐</span></div>
+        <div class="orbit-dot orbit-1"></div>
+        <div class="orbit-dot orbit-2"></div>
+        <div class="orbit-dot orbit-3"></div>
+      </div>
+
+      <div class="card rounded-3xl px-7 sm:px-9 py-8 sm:py-9 w-[92vw] max-w-[400px] mx-auto">
+
+        <div class="text-center mb-7">
+          <div class="eyebrow text-indigo-300 mb-2">Discord Access Infrastructure</div>
+          <h1 class="display text-2xl font-bold tracking-tight text-slate-100">Whitelist Sync</h1>
+          <p class="text-xs text-slate-500 mt-1.5">Sign in to reach the operations console.</p>
+        </div>
+
+        {% if error %}
+        <div class="mb-5 rounded-xl border border-rose-400/25 bg-rose-500/10 text-rose-300 text-xs px-4 py-3">
+          {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" class="space-y-4">
+          <div>
+            <label class="eyebrow text-slate-500 block mb-2" for="username">Username</label>
+            <input
+              id="username" name="username" type="text" autocomplete="username"
+              required autofocus
+              class="w-full rounded-xl px-4 py-3 text-sm mono"
+              placeholder="your_username"
+            >
+          </div>
+
+          <div>
+            <label class="eyebrow text-slate-500 block mb-2" for="password">Password</label>
+            <input
+              id="password" name="password" type="password" autocomplete="current-password"
+              required
+              class="w-full rounded-xl px-4 py-3 text-sm mono"
+              placeholder="••••••••••"
+            >
+          </div>
+
+          <button
+            type="submit"
+            class="unlock-btn w-full rounded-xl py-3 text-sm font-semibold text-white mt-2"
+          >
+            Unlock console →
+          </button>
+        </form>
+
+        <p class="text-center text-[10px] text-slate-600 mt-6 mono">LOCAL-FIRST / DRY-RUN-GATED</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Subtle parallax tilt on the whole card + node, following the cursor.
+    // Skipped entirely on touch devices and when reduced motion is set.
+    const stage = document.getElementById("stage");
+    const scene = document.getElementById("scene");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isTouch = window.matchMedia("(pointer: coarse)").matches;
+
+    if (stage && !prefersReducedMotion && !isTouch) {
+      scene.addEventListener("mousemove", (e) => {
+        const { innerWidth, innerHeight } = window;
+        const x = (e.clientX / innerWidth - 0.5) * 2;
+        const y = (e.clientY / innerHeight - 0.5) * 2;
+        stage.style.transform = `rotateY(${x * 6}deg) rotateX(${-y * 6}deg)`;
+      });
+      scene.addEventListener("mouseleave", () => {
+        stage.style.transform = "rotateY(0deg) rotateX(0deg)";
+      });
+    }
+  </script>
+
+</body>
+</html>
